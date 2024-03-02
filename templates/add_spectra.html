@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title> Add Spectra </title>
+     <script>
+        function checkAction(event) {
+            // Check if the form was submitted by the "change_spectrum_btn" button
+            var submitButton = event.submitter;
+            if (submitButton && submitButton.name === 'change_spectrum_btn') {
+                // Get the hidden input field
+                var valueInput = document.getElementById('change_spectrum');
+
+                // Set the value to the desired value
+                valueInput.value = '1';
+            }
+            if (submitButton && submitButton.name === 'save_spectrum_btn') {
+                var valueInput = document.getElementById('save_spectrum');
+
+                valueInput.value = '1';
+            }
+
+            return true;
+        }
+    </script>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('compare_spectrums') }}">
+            <img src="/static/logo.jpg" alt="logo" width = "350px" height="100px" class="d-inline-block align-top">
+        </a>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('compare_spectrums') }}">Compare spectrums</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('search_spectrums') }}">Search spectrum</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('add_spectra_page') }}">Add spectrum</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('create_db') }}">Create Spectrum DB</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container mt-5">
+    <h1 style="margin-top:20px; margin-bottom:20px">Add Spectra</h1>
+    <form method="post" enctype="multipart/form-data" class="row gy-3 gx-3 align-items-center" onsubmit="checkAction(event)">
+        <div class="row form-group">
+            <div class="col">
+                <label for="led_range_b" class="form-label">Excitation wavelength begin:</label>
+                <input class="form-control" type="number" id="led_range_b" {% if options %} value="{{options["wavs_to_delete"][0]}}" {% else %} value="400" {% endif %} name="led_range_b" required>
+            </div>
+            <div class="col">
+                <label for="led_range_e" class="form-label">Excitation wavelength end:</label>
+                <input class="form-control" type="number" id="led_range_e" {% if options %} value="{{options["wavs_to_delete"][1]}}" {% else %} value="401" {% endif %} name="led_range_e" required>
+            </div>
+            <div class="col">
+                <label for="alpha" class="form-label">Dimensionality reduction factor:</label>
+                <input class="form-control" type="number" id="alpha" {% if options %} value="{{options["alpha"]}}" {% else %} value="3" {% endif %} name="alpha" required min="1" max="5">
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col">
+                <label for="smoothing_wind" class="form-label">Smoothing window:</label>
+                <input class="form-control" type="number" id="smoothing_wind" {% if options %} value="{{options["smoothing_wind"]}}" {% else %} value="10" {% endif %} name="smoothing_wind" required>
+            </div>
+            <div class="col">
+                <label for="min_peak_height" class="form-label">Minimum peak height:</label>
+                <input class="form-control" id="min_peak_height" {% if options %} value="{{options["min_peak_height"]}}" {% else %} value="0.1" {% endif %} name="min_peak_height" required>
+            </div>
+            <div class="col">
+                {% if options['file'] %}
+                    <input type="hidden" id="file_df" name="file_df" value="{{ file_df | default('') }}" />
+                    <input type="hidden" id="filename" name="filename" value="{{ options['file'] | default('') }}" />
+                    File "{{ options['file'] }}" already inserted ✅
+                {% else %}
+                    <label for="spectrum" class="form-label">Spectrum file:</label>
+                    <input class="form-control" type="file" id="spectrum" name="spectrum" accept=".txt, .csv" />
+                {% endif %}
+            </div>
+        </div>
+        <div style="margin-top:15px" class="row form-group">
+            <div class="col">
+                {% if options['file'] %}
+                    <button type="submit" class="btn btn-primary">Reload spectrum</button>
+                {% else %}
+                    <button type="submit" class="btn btn-primary">Load spectrum</button>
+                {% endif %}
+            </div>
+            {% if options['file'] %}
+                <div class="col">
+                    <input type="hidden" id="change_spectrum" name="change_spectrum" value="0" />
+                    <button type="submit" name="change_spectrum_btn" class="btn btn-primary">Change spectrum</button>
+                </div>
+            {% endif %}
+        </div>
+        {% if options['file'] %}
+            <div style="margin-top:15px" class="row form-group">
+                <div class="col">
+                    <label for="db_select">Choose a DB:</label>
+                    <select id="db_select" name="db_select" class="form-select" aria-label="Default select example" required>
+                      <option selected>Choose DB</option>
+                      {% if options['dbs'] %}
+                      {% for db in options['dbs'] %}
+                        <option value="{{ db }}">{{ db }}</option>
+                      {% endfor %}
+                      {% endif %}
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="save_spectrum_name" class="form-label">Spectrum name:</label>
+                    <input class="form-control" type="text" {% if saved_spectrum_name %} value="{{saved_spectrum_name}}" {% endif %} id="save_spectrum_name" name="save_spectrum_name" />
+                </div>
+                <div class="col">
+                    <input type="hidden" id="save_spectrum" name="save_spectrum" value="0" />
+                    <button type="submit" name="save_spectrum_btn" class="btn btn-success">Save Spectrum</button>
+                </div>
+            </div>
+        {% endif %}
+    </form>
+    {% if successful %}
+        {% if successful=='1' %}
+            <div class="alert alert-success mt-3">Spectrum saved successfully</div>
+        {% endif %}
+    {% endif %}
+    {% if error %}
+            <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+    {% if table %}
+        <div class="container mt-5">
+            {{ table|safe }}
+        </div>
+    {% endif %}
+    {% if plot_elaborated %}
+            <div class="mt-4">
+                <h2>Elaborated Spectra</h2>
+                {{ plot_elaborated | safe }}
+            </div>
+    {% endif %}
+    {% if plot_original %}
+            <div class="mt-4">
+                <h2>Original Spectra</h2>
+                {{ plot_original | safe }}
+            </div>
+    {% endif %}
+</div>
+</body>
+</html>

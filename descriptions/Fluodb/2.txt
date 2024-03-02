@@ -1,0 +1,9 @@
+The fluorescent compound that corresponds to the given peak wavelengths and full-width half-maximum (FWHM) values, in line with the user's suspicion, is Riboflavin.
+
+Riboflavin, also known as vitamin B2, is a naturally occurring compound with a vital role in human metabolism. Its presence is key to the body's ability to convert food into glucose, which in turn provides energy to the body. Besides, Riboflavin is necessary for the functioning of various enzymes in the body.
+
+Riboflavin exhibits fluorescence properties; it absorbs light at approximately 446 nm and emits it at about 520-550 nm. This range aligns closely with the peak wavelengths provided. The riboflavin molecule contains isoalloxazine ring system which is primarily responsible for its fluorescent properties.
+
+Upon excitation of Riboflavin using a UV light source, it undergoes a transition where it emits light in the visible spectrum, appearing greenish-yellow. This fluorescence property of Riboflavin is used in microbiology for the staining of yeasts and protozoa. 
+
+Please validate this with further tests and comparisons to ensure that Riboflavin is indeed the compound you are looking at.

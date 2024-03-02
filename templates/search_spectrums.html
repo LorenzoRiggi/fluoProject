@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title> Search Spectrums </title>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('compare_spectrums') }}">
+            <img src="/static/logo.jpg" alt="logo" width = "350px" height="100px" class="d-inline-block align-top">
+        </a>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('compare_spectrums') }}">Compare spectrums</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('search_spectrums') }}">Search spectrum</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('add_spectra_page') }}">Add spectrum</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('create_db') }}">Create Spectrum DB</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container mt-5">
+    <h1 style="margin-bottom:20px">Search Spectrums</h1>
+    <form method="get" enctype="multipart/form-data" class="row gy-3 gx-3 align-items-center">
+        <div class="row form-group">
+            <div class="col">
+                <label for="db_name" class="form-label"> Choose a DB </label>
+                <select id="db_name" name="db_name" class="form-select" aria-label="Default select example" required>
+                    {% if db_name %}
+                        <option selected>{{ db_name }}</option>
+                    {% else %}
+                        <option selected>Choose DB</option>
+                    {% endif %}
+                    {% for db in db_list %}
+                        <option value="{{ db }}">{{ db }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col">
+                <label for="search_criteria" class="form-label"> Select search criteria </label>
+                <select id="search_criteria" name="search_criteria" class="form-select" aria-label="Default select example" onchange="showTextFields()" required>
+                    {% if search_criteria %}
+                        <option selected>{{ search_criteria }}</option>
+                    {% else %}
+                        <option selected>Choose criteria</option>
+                    {% endif %}
+                    {% for criteria in criteria_list %}
+                        <option value="{{ criteria }}">{{ criteria }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col" id="search_criteria_text_column" {% if peak_wav %} hidden {% endif %}>
+                <label for="search_criteria_text" class="form-label">Search criteria:</label>
+                <input class="form-control" type="text"
+                        {% if search_criteria_text %} value="{{search_criteria_text}}"
+                        {% else %} value=""
+                        {% endif %}
+                       id="search_criteria_text" name="search_criteria_text" />
+            </div>
+            <div class="col" id="peak_wav_col" {% if not peak_wav %} hidden {% endif %}>
+                <label for="peak_wav_criteria" class="form-label">Peak wavelength:</label>
+                <input class="form-control" type="text"
+                        {% if peak_wav %} value="{{peak_wav}}"
+                        {% else %} value=""
+                        {% endif %}
+                       id="peak_wav_criteria" name="peak_wav_criteria" />
+            </div>
+            <div class="col" id="fwhm_col" {% if not fwhm %} hidden {% endif %}>
+                <label for="fwhm_criteria" class="form-label">FWHM:</label>
+                <input class="form-control" type="text"
+                        {% if fwhm %} value="{{fwhm}}"
+                        {% else %} value=""
+                        {% endif %}
+                       id="fwhm_criteria" name="fwhm_criteria" />
+            </div>
+            <div class="col" id="peak_wav_tol_col" {% if not peak_wav_tol %} hidden {% endif %}>
+                <label for="peak_wav_criteria_tol" class="form-label">Peak wavelength tolerance:</label>
+                <input class="form-control" type="text"
+                        {% if peak_wav_tol %} value="{{peak_wav_tol}}"
+                        {% else %} value=""
+                        {% endif %}
+                       id="peak_wav_criteria_tol" name="peak_wav_criteria_tol" />
+            </div>
+            <div class="col" id="fwhm_tol_col" {% if not fwhm_tol %} hidden {% endif %}>
+                <label for="fwhm_tol" class="form-label">FWHM tolerance:</label>
+                <input class="form-control" type="text"
+                        {% if fwhm_tol %} value="{{fwhm_tol}}"
+                        {% else %} value=""
+                        {% endif %}
+                       id="fwhm_tol" name="fwhm_tol" />
+            </div>
+            <div class="col">
+                <button type="submit" name="save_db_btn" class="btn btn-primary">Search spectrum</button>
+            </div>
+        </div>
+    </form>
+    {% if error %}
+            <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+    {% if table %}
+        <div class="container mt-5">
+            {{ table|safe }}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function showTextFields() {
+        let selectElement = document.getElementById("search_criteria");
+        let peak_field = document.getElementById("peak_wav_col");
+        let fwhm_field = document.getElementById("fwhm_col");
+        let peak_tol_field = document.getElementById("peak_wav_tol_col");
+        let fwhm_tol_field = document.getElementById("fwhm_tol_col");
+        let search_criteria_field = document.getElementById("search_criteria_text_column")
+
+        // Check the selected option and show corresponding text fields
+        let selectedOption = selectElement.value;
+        if (selectedOption === "Peak wavelength and FWHM") {
+            peak_field.hidden = false;
+            fwhm_field.hidden = false;
+            peak_tol_field.hidden = false;
+            fwhm_tol_field.hidden = false;
+            search_criteria_field.hidden = true;
+        } else {
+            peak_field.hidden = true;
+            fwhm_field.hidden = true;
+            peak_tol_field.hidden = true;
+            fwhm_tol_field.hidden = true;
+            search_criteria_field.hidden = false;
+        }
+    }
+</script>
+
+</body>
+</html>

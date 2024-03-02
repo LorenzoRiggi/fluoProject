@@ -1,0 +1,5 @@
+The characteristics of peak wavelength and full width at half maximum (FWHM) you provided closely match those of Chlorophyll-a, a vital photosynthetic pigment found in plants and algae.
+
+Chlorophyll-a absorbs light primarily at the wavelength of 430-662 nm in the blue and red light regions, while it emits fluorescence around the peak wavelength of 673-683 nm. It plays a key role in photosynthesis by allowing plants to absorb energy from light. The primary role of chlorophyll-a is to convert light energy into chemical energy, which is then used for the process of photosynthesis. In this conversion process, light energy absorbed by chlorophyll-a promotes electrons to a higher energy state, and these high-energy electrons then drive the synthesis of glucose from water and carbon dioxide, with the release of oxygen. 
+
+Its broad emission line in the red region contributes to the observed green color of most plants.

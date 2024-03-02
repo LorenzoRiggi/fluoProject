@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <title> Compare Spectra </title>
+</head>
+<script>
+        function checkAction(event) {
+            // Check if the form was submitted by the "change_spectrum_btn" button
+            let submitButton = event.submitter;
+            if ((submitButton && submitButton.name === 'reload_spectrum_btn1') || (submitButton && submitButton.name === 'reload_spectrum_btn2')) {
+                // Get the hidden input field
+                let valueInput = document.getElementById('load_spectrum');
+
+                // Set the value to the desired value
+                valueInput.value = '1';
+            }
+            if ((submitButton && submitButton.name === 'change_spectrum_btn')) {
+                // Get the hidden input field
+                let valueInput = document.getElementById('change_spectrum');
+
+                // Set the value to the desired value
+                valueInput.value = '1';
+            }
+            if (submitButton && submitButton.name === 'compare_spectrum_btn') {
+                let valueInput = document.getElementById('compare_spectrum');
+
+                valueInput.value = '1';
+            }
+
+            return true;
+        }
+    </script>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('compare_spectrums') }}">
+            <img src="/static/logo.jpg" alt="logo" width = "350px" height="100px" class="d-inline-block align-top">
+        </a>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('compare_spectrums') }}">Compare spectrums</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('search_spectrums') }}">Search spectrum</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('add_spectra_page') }}">Add spectrum</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('create_db') }}">Create Spectrum DB</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container mt-5">
+    <h1 style="margin-top:20px; margin-bottom:20px">Compare spectrums</h1>
+    {% if error %}
+            <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" class="row gy-3 gx-3 align-items-center" onsubmit="checkAction(event)">
+        <div class="row form-group">
+            <div class="col">
+                <label for="led_range_b" class="form-label">Excitation wavelength begin:</label>
+                <input class="form-control" type="number" id="led_range_b" {% if options %} value="{{options["wavs_to_delete"][0]}}" {% else %} value="400" {% endif %} name="led_range_b" required>
+            </div>
+            <div class="col">
+                <label for="led_range_e" class="form-label">Excitation wavelength end: </label>
+                <input class="form-control" type="number" id="led_range_e" {% if options %} value="{{options["wavs_to_delete"][1]}}" {% else %} value="401" {% endif %} name="led_range_e" required>
+            </div>
+            <div class="col">
+                <label for="alpha" class="form-label">Dimesionality reduction factor:</label>
+                <input class="form-control" type="number" id="alpha" {% if options %} value="{{options["alpha"]}}" {% else %} value="3" {% endif %} name="alpha" required min="1" max="5">
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col">
+                <label for="smoothing_wind" class="form-label">Smoothing window:</label>
+                <input class="form-control" type="number" id="smoothing_wind" {% if options %} value="{{options["smoothing_wind"]}}" {% else %} value="10" {% endif %} name="smoothing_wind" required>
+            </div>
+            <div class="col">
+                <label for="min_peak_height" class="form-label">Minimum peak height:</label>
+                <input class="form-control" id="min_peak_height" {% if options %} value="{{options["min_peak_height"]}}" {% else %} value="0.1" {% endif %} name="min_peak_height" required>
+            </div>
+            <div class="col">
+                {% if options %}
+                {% if options['file'] %}
+                    <input type="hidden" id="file_df" name="file_df" value="{{ file_df | default('') }}" />
+                    <input type="hidden" id="filename" name="filename" value="{{ options['file'] | default('') }}" />
+                    File "{{ options['file'] }}" already inserted ✅
+                {% else %}
+                    <label for="spectrum" class="form-label">Spectrum file:</label>
+                    <input class="form-control" type="file" id="spectrum" name="spectrum" accept=".txt, .csv" />
+                {% endif %}
+                {% else %}
+                    <label for="spectrum" class="form-label">Spectrum file:</label>
+                    <input class="form-control" type="file" id="spectrum" name="spectrum" accept=".txt, .csv" />
+                {% endif %}
+            </div>
+        </div>
+        <div style="margin-top:15px;" class="row">
+            <div class="col">
+                <input type="hidden" id="load_spectrum" name="load_spectrum" value="0" />
+                {% if options %}
+                {% if options['file'] %}
+                    <button type="submit" name="reload_spectrum_btn1" class="btn btn-primary">Reload spectrum</button>
+                {% else %}
+                    <button type="submit" name="reload_spectrum_btn2" class="btn btn-primary">Load spectrum</button>
+                {% endif %}
+                {% else %}
+                    <button type="submit" name="reload_spectrum_btn2" class="btn btn-primary">Load spectrum</button>
+                {% endif %}
+            </div>
+            {% if options %}
+            {% if options['file'] %}
+                <div class="col">
+                    <input type="hidden" id="change_spectrum" name="change_spectrum" value="0" />
+                    <button type="submit" name="change_spectrum_btn" class="btn btn-primary">Change spectrum</button>
+                </div>
+            {% endif %}
+            {% endif %}
+        </div>
+        <div style="margin-top:15px;" class="row">
+            <div class="col">
+                <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">+ Show comparison options</button>
+            </div>
+        </div>
+        <div style="margin-top:15px;" class="collapse" id="collapseExample">
+            <div class="row form_group">
+                <div class="col">
+                    <label for="pk_num_tolerance" class="form-label">pk_num_tol</label><input class="form-control" id="pk_num_tolerance" {% if comp_set %} value="{{comp_set["pk_num_tolerance"]}}" {% else %} value="1" {% endif %} name="pk_num_tolerance" required>
+                </div>
+                <div class="col">
+                    <label for="pk_tolerance" class="form-label">pk_tol</label><input class="form-control" id="pk_tolerance" {% if comp_set %} value="{{comp_set["pk_tolerance"]}}" {% else %} value="30" {% endif %} name="pk_tolerance" required>
+                </div>
+                <div class="col">
+                    <label for="fwhm_tolerance" class="form-label">fwhm_tol</label><input class="form-control" id="fwhm_tolerance" {% if comp_set %} value="{{comp_set["fwhm_tolerance"]}}" {% else %} value="50" {% endif %} name="fwhm_tolerance" required>
+                </div>
+                <div class="col">
+                    <label for="weight_peak" class="form-label">weight_peak</label><input class="form-control" id="weight_peak" {% if comp_set %} value="{{comp_set["weight_peak"]}}" {% else %} value="0.5" {% endif %} name="weight_peak" required>
+                </div>
+                <div class="col">
+                    <label for="weight_fwhm" class="form-label">weight_fwhm</label><input class="form-control" id="weight_fwhm" {% if comp_set %} value="{{comp_set["weight_fwhm"]}}" {% else %} value="0.2" {% endif %} name="weight_fwhm" required>
+                </div>
+                <div class="col">
+                    <label for="weight_shape" class="form-label">weight_shape</label><input class="form-control" id="weight_shape" {% if comp_set %} value="{{comp_set["weight_shape"]}}" {% else %} value="0.3" {% endif %} name="weight_shape" required>
+                </div>
+                <div class="col">
+                    <label for="num_records_to_show" class="form-label">num_records_to_show</label><input class="form-control" id="num_records_to_show" {% if comp_set %} value="{{comp_set["num_records_to_show"]}}" {% else %} value="5" {% endif %} name="num_records_to_show" required>
+                </div>
+                <div class="col">
+                    <label for="shape_pt_tol" class="form-label">shape_pt_tol</label><input class="form-control" id="shape_pt_tol" {% if comp_set %} value="{{comp_set["shape_pt_tol"]}}" {% else %} value="0.3" {% endif %} name="shape_pt_tol" required>
+                </div>
+                <div class="col">
+                    <label for="baseline_pts" class="form-label">baseline_pts</label><input class="form-control" id="baseline_pts" {% if comp_set %} value="{{comp_set["baseline_pts"]}}" {% else %} value="0.1" {% endif %} name="baseline_pts" required>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:15px;" class="row form-group">
+            <div class="col">
+                <select name="db_select" class="form-select" aria-label="Default select example" required>
+                  <option selected>Choose DB</option>
+                  {% if options %}
+                      {% if options['db_name'] %}
+                          <option selected>{{ options['db_name'] }}</option>
+                      {% endif %}
+                      {% if options['dbs'] %}
+                      {% for db in options['dbs'] %}
+                        <option value="{{ db }}">{{ db }}</option>
+                      {% endfor %}
+                      {% endif %}
+                  {% endif %}
+                </select>
+            </div>
+            <div class="col">
+                <input type="hidden" id="compare_spectrum" name="compare_spectrum" value="0" />
+                <button type="submit" name="compare_spectrum_btn" class="btn btn-success">Compare Spectrum with those in DB</button>
+            </div>
+        </div>
+    </form>
+    {% if table %}
+        <div class="container mt-5">
+            {{ table|safe }}
+        </div>
+    {% endif %}
+    {% if plot_inserted %}
+            <div class="mt-4">
+                <h2>Elaborated inserted Spectrum</h2>
+                {{ plot_inserted | safe }}
+            </div>
+    {% endif %}
+    {% if tables_comp and plots_comp %}
+        <h2 style="margin-top:20px">Comparison Matches</h2>
+        {% for i in range(tables_comp|length) %}
+            <div class="container mt-5">
+                {{ tables_comp[i] | safe }}
+            </div>
+            <div class="mt-4">
+                {{ plots_comp[i] | safe }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+</div>
+</body>
+</html>
