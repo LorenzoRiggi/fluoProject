@@ -7,6 +7,7 @@ import sqlite3
 from pathlib import Path
 import bcrypt
 
+
 class DB(object):
     def __init__(self, db_name):
         self.con = sqlite3.connect("fluodb.sqlite")

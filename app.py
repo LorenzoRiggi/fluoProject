@@ -13,7 +13,7 @@ from CompareSpectra import CompareSpectra
 
 client = OpenAI(
     # This is the default and can be omitted
-     api_key='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'
+     #specify KEY!
 )
 
 app = Flask(__name__)
@@ -132,7 +132,7 @@ def compare_spectrums():
 
             file_df = df_inserted.to_json(orient='split')
 
-            plot_elaborated = create_plot(df_reduced, 'Inserted spectrum', 2, locations, width_heights, left_ips, right_ips)
+            plot_elaborated = create_plot(df_reduced, 2, locations, width_heights, left_ips, right_ips)
 
             return render_template('compare_spectrums.html', file_df=file_df, options=options_selected,
                                    comp_set=comp_set, plot_inserted=plot_elaborated,
@@ -150,7 +150,7 @@ def compare_spectrums():
 
             file_df = df_inserted.to_json(orient='split')
 
-            plot_elaborated = create_plot(df_reduced, 'Inserted spectrum', 2, locations, width_heights, left_ips, right_ips)
+            plot_elaborated = create_plot(df_reduced, 2, locations, width_heights, left_ips, right_ips)
 
             return render_template('compare_spectrums.html', error='Choose a DB',
                                    file_df=file_df, options=options_selected,
@@ -170,7 +170,7 @@ def compare_spectrums():
         df_inserted_reduced = pd.DataFrame({columns_plot[0]: wavelengths_reduced, columns_plot[1]: intensities_reduced})
         df_inserted_data = pd.DataFrame({columns_table[0]: [["{:.2f}".format(x) for x in locations]], columns_table[1]: [["{:.2f}".format(x) for x in fwhm]]})
 
-        plot_inserted = create_plot(df_inserted_reduced, 'Inserted spectrum', 2, locations, width_heights, left_ips, right_ips)
+        plot_inserted = create_plot(df_inserted_reduced, 2, locations, width_heights, left_ips, right_ips)
 
         file_df = df_inserted.to_json(orient='split')
 
@@ -196,7 +196,7 @@ def compare_spectrums():
             # row[0] is the index
             locations_c, width_heights_c, left_ips_c, right_ips_c, _ = peaks_spot(row[columns_plot[0]], row[columns_plot[1]], min_peak_heights[i_])
             df_comp_params = {'locations': locations_c, 'width_heights': width_heights_c, 'left_ips': left_ips_c, 'right_ips': right_ips_c}
-            plots_comp.append(create_plot(df_inserted_reduced, 'Inserted spectra', 3, locations=locations,
+            plots_comp.append(create_plot(df_inserted_reduced, 3, locations=locations,
                                              width_heights=width_heights, left_ips=left_ips, right_ips=right_ips,
                                              df_comp=row, df_comp_name=df_comp_records_data['Name'].iloc[index], df_comp_params=df_comp_params))
             i_ = i_ + 1
@@ -278,7 +278,7 @@ def view_spectra():
         locations, width_heights, left_ips, right_ips, fwhm = peaks_spot(wavelengths, intensities,
                                                                          record.min_peak_height)
 
-        plot = create_plot(df_plot, df_spectra['Spectra name'], 2, locations, width_heights, left_ips, right_ips)
+        plot = create_plot(df_plot, 2, locations, width_heights, left_ips, right_ips)
 
         message = (f"Find fluorescent compounds that could be a match with these peak wavelengths = {locations.tolist()} nm and fwhm = {fwhm} nm"
                    f". Hint: the user thinks it is {record.name}. Give me only one straight answer and give me information about the fluorescent compounds")
@@ -534,7 +534,7 @@ def add_spectra_page():  # put application's code here
                 return render_template('add_spectra.html', error='File is empty', options=None)
 
         # Create an interactive plot using Plotly
-        plot_original = create_plot(df, 'Original spectrum', 1)
+        plot_original = create_plot(df, 1)
 
         # Process data
         add_spectra_class = AddSpectra(wavs_to_delete, smoothing_wind, min_peak_height, alpha, df)
@@ -543,7 +543,7 @@ def add_spectra_page():  # put application's code here
         df_reduced = pd.DataFrame({'Wavelength [nm]': wavelengths_reduced, 'Intensity [counts]': intensities_reduced})
         df_data = pd.DataFrame({'Peak wavelengths [nm]': locations, 'FWHM peaks [nm]': fwhm})
 
-        plot_elaborated = create_plot(df_reduced, 'Conditioned spectrum', 2, locations, width_heights, left_ips, right_ips)
+        plot_elaborated = create_plot(df_reduced, 2, locations, width_heights, left_ips, right_ips)
 
         options_selected = {
             'wavs_to_delete': wavs_to_delete,
@@ -605,7 +605,7 @@ def result_add_successful():
                                                                      fluo_rec_spectra.min_peak_height)
 
     df_plot = pd.DataFrame({'Wavelength [nm]': spectra_data[0], 'Intensity [counts]': spectra_data[1]})
-    plot_elaborated = create_plot(df_plot, 'Added spectrum', 2, locations, width_heights, left_ips, right_ips)
+    plot_elaborated = create_plot(df_plot, 2, locations, width_heights, left_ips, right_ips)
 
     df_spectra.columns = ['DB name', 'id', 'Name', 'Number of peaks', 'Wavelengths of Peaks [nm]', 'FWHMs of Peaks [nm]', 'Used min_peak_height']
 
@@ -613,7 +613,7 @@ def result_add_successful():
                            table=df_spectra.to_html(classes='table table-striped table-bordered table-hover', index=False))
 
 
-def create_plot(df, df_name, plot_type, locations=None, width_heights=None, left_ips=None, right_ips=None, df_comp=None, df_comp_name=None, df_comp_params=None):
+def create_plot(df, plot_type, locations=None, width_heights=None, left_ips=None, right_ips=None, df_comp=None, df_comp_name=None, df_comp_params=None):
     # Example: Create a scatter plot using Plotly Express
     if width_heights is None:
         width_heights = []

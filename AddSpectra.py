@@ -35,8 +35,11 @@ class AddSpectra(object):
         wavs_remove = self.led_range
 
         indices_remove = np.where((wavelengths >= wavs_remove[0]) & (wavelengths <= wavs_remove[-1]))
-        intensities[indices_remove] = 0
 
+        if indices_remove[0][0] - 1 >= 0:
+            intensities[indices_remove] = intensities[indices_remove[0][0] - 1]
+        else:
+            intensities[indices_remove] = intensities[indices_remove[0][0]]
         # 2. Smoothing
         intensities = savgol_filter(intensities, self.smoothing_wind, 3)
 
@@ -76,10 +79,3 @@ class AddSpectra(object):
         df_highres.to_csv(filename_highres, sep=';', index=False)
 
         return id_
-
-
-def index_to_xdata(xdata, indices):
-    # interpolate the values from signal.peak_widths to xdata
-    ind = np.arange(len(xdata))
-    f = interp1d(ind,xdata)
-    return f(indices)

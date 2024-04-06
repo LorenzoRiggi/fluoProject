@@ -30,8 +30,14 @@ class CompareSpectra:
     def compare_fluorescence_recs(self, spectra_compare, fluo_rec):
         # Check number of peaks
         diff_num_pks = abs(spectra_compare.pks_num - fluo_rec.pks_num)
-        score_num_peaks = 1 - diff_num_pks / self.comp_set['pk_num_tolerance']
-        score_num_peaks = max(0, score_num_peaks)
+
+        if self.comp_set['pk_num_tolerance'] == 0 and diff_num_pks > 0:
+            score_num_peaks = 0
+        else:
+            score_num_peaks = 1 - diff_num_pks / self.comp_set['pk_num_tolerance']
+            score_num_peaks = max(0, score_num_peaks)
+
+        print('score_num_peaks', score_num_peaks)
 
         # Check wavelength of peaks
         matching_peak_index = np.full(spectra_compare.pks_num, -1)
@@ -73,6 +79,7 @@ class CompareSpectra:
         score_fwhm = np.mean(score_fwhms)
 
         score = score_num_peaks * self.comp_set['weight_peak'] * score_peaks_wav + self.comp_set['weight_fwhm'] * score_fwhm
+        print('score fwhm and peaks', score*100)
         return score
 
     def compare_fluo_recs_shapes(self, spectra_compare_ints, spectra_compare_wavs, fluo_rec):
@@ -97,6 +104,7 @@ class CompareSpectra:
                 scores[i] = 0
 
         score = np.mean(scores) * self.comp_set['weight_shape']
+        print('score shape', score * 100)
         return score
 
     def compare_spectra(self):
@@ -116,8 +124,11 @@ class CompareSpectra:
 
         # First Sorting of Database
         fs1_record_table = DB(self.db_name).get_db()
-        idx = fs1_record_table['pks_num'] <= spectra_compare.pks_num
-        fs1_record_table = fs1_record_table[idx]
+        #idx = fs1_record_table['pks_num'] <= spectra_compare.pks_num
+        mask_greater = fs1_record_table['pks_num'] >= spectra_compare.pks_num - self.comp_set['pk_num_tolerance']
+        mask_lower = fs1_record_table['pks_num'] <= spectra_compare.pks_num + self.comp_set['pk_num_tolerance']
+        mask = mask_greater & mask_lower
+        fs1_record_table = fs1_record_table[mask]
 
         fs2_record_table = fs1_record_table.sort_values(by='id', ascending=False)
 
@@ -173,9 +184,11 @@ class CompareSpectra:
             chosen_scores_to_show = sorted_score_table['Score']
 
         records = [FluoRec(self.db_name, -1, "", 0, np.array([0]), np.array([0]), 0) for _ in range(len(chosen_records_indices_to_show))]
+        i = 0
         for index in chosen_records_indices_to_show:
-            records[index] = fluorescence_records[int(index)]
-            records[index].score = chosen_scores_to_show[index]
+            records[i] = fluorescence_records[int(index)]
+            records[i].score = chosen_scores_to_show[int(index)]
+            i = i+1
 
         # returns the records (as FluoRec class) and conditioned information about the original spectra
         return (records, wavelengths_reduced, intensities_reduced, wavelengths, intensities, locations, fwhm,
