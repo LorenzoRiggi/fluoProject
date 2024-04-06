@@ -35,7 +35,8 @@ class DB(object):
         df = pd.read_sql_query("SELECT name from sqlite_master WHERE type='table'", con)
         df = df[df['name'] != 'Profiles']
 
-        # number of records per db
+        # resets indexes after skipping the 'Profile database'
+        df = df.reset_index(drop=True)
         table_rec_nums = np.zeros(len(df))
 
         for index, row in df.iterrows():
